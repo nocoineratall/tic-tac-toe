@@ -1,0 +1,38 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --gameboard-size: 50vw;
+  --marker-font-size: max(10px, 10vw);
+}
+
+body {
+  font-size: 50px;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(24, 24, 24);
+  color: red;
+}
+
+.gameboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: var(--gameboard-size);
+  height: var(--gameboard-size);
+}
+
+.gameboard > .tile {
+  min-width: 10vw;
+  min-height: 10vw;
+  border: 1px solid rgb(255, 255, 255);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: var(--marker-font-size);
+}
