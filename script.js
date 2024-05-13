@@ -18,35 +18,49 @@ const gameboard = (function () {
 })();
 
 const players = (function () {
+  let playerMarkerColor = "red";
+  let opponentMarkerColor = "blue";
+
   const player = {
     name: "Player",
     marker: "X",
+    color: playerMarkerColor,
   };
 
   const opponent = {
     name: "Opponent",
     marker: "O",
+    color: opponentMarkerColor,
   };
 
-  const playersList = [player.name, opponent.name];
+  const playersList = [player, opponent];
+
+  // 0 for Player, 1 for Opponent
+  const getPlayer = (playerIndex) => playersList[playerIndex];
 
   const setName = function (_player, newName) {
     return (_player.name = newName);
   };
 
-  return { playersList, setName };
+  const setMarkerColor = function (playerIndex, newColor) {
+    playersList[playerIndex].color = newColor;
+  };
+
+  return { setName, getPlayer, setMarkerColor };
 })();
 
 const game = (function () {
-  let activePlayer = players.player;
+  let activePlayer = players.getPlayer(0);
 
   const switchPlayer = function () {
     // is it possible to compare objects instead?
     activePlayer =
-      activePlayer.name === players.player.name
-        ? players.opponent
-        : players.player;
+      activePlayer.name === players.getPlayer(0).name
+        ? players.getPlayer(1)
+        : players.getPlayer(0);
   };
+
+  const getActivePlayer = () => activePlayer;
 
   const checkAvailability = function (row, column) {
     if (
@@ -64,6 +78,8 @@ const game = (function () {
     } else {
       return console.log("Position not available - select another tile");
     }
+
+    render.printMarker(row, column);
 
     checkVictory();
     switchPlayer();
@@ -124,5 +140,30 @@ const game = (function () {
     }
   };
 
-  return { playTurn };
+  return { playTurn, getActivePlayer };
+})();
+
+const render = (function () {
+  const tiles = document.querySelectorAll(".tile");
+  let index;
+
+  const printMarker = function (row, column) {
+    index = 3 * row + column;
+    tiles[index].textContent = game.getActivePlayer().marker;
+
+    if (game.getActivePlayer().color == players.getPlayer(0).color) {
+      //tiles[index].classList.add(players.getPlayer(0).color);
+      tiles[index].setAttribute(
+        "style",
+        `color: ${players.getPlayer(0).color}`
+      );
+    } else {
+      //tiles[index].classList.add(players.getPlayer(1).color);
+      tiles[index].setAttribute(
+        "style",
+        `color: ${players.getPlayer(1).color}`
+      );
+    }
+  };
+  return { printMarker };
 })();
