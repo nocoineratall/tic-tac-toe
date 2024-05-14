@@ -39,7 +39,7 @@ const players = (function () {
   const getPlayer = (playerIndex) => playersList[playerIndex];
 
   const setName = function (_player, newName) {
-    return (_player.name = newName);
+    _player.name = newName;
   };
 
   const setMarkerColor = function (playerIndex, newColor) {
@@ -144,26 +144,48 @@ const game = (function () {
 })();
 
 const render = (function () {
-  const tiles = document.querySelectorAll(".tile");
-  let index;
-
   const printMarker = function (row, column) {
-    index = 3 * row + column;
-    tiles[index].textContent = game.getActivePlayer().marker;
+    let index = 3 * row + column;
+
+    DOMcontroller.tiles[index].textContent = game.getActivePlayer().marker;
 
     if (game.getActivePlayer().color == players.getPlayer(0).color) {
       //tiles[index].classList.add(players.getPlayer(0).color);
-      tiles[index].setAttribute(
+      DOMcontroller.tiles[index].setAttribute(
         "style",
         `color: ${players.getPlayer(0).color}`
       );
     } else {
       //tiles[index].classList.add(players.getPlayer(1).color);
-      tiles[index].setAttribute(
+      DOMcontroller.tiles[index].setAttribute(
         "style",
         `color: ${players.getPlayer(1).color}`
       );
     }
   };
   return { printMarker };
+})();
+
+const DOMcontroller = (function () {
+  const tiles = document.querySelectorAll(".tile");
+
+  const indexToBoardPosition = function (index) {
+    row = Math.floor(index / gameboard.getBoard().length);
+    column = index % gameboard.getBoard().length;
+    return { row, column };
+  };
+
+  return { tiles, indexToBoardPosition };
+})();
+
+const eventBinder = (function () {
+  DOMcontroller.tiles.forEach((tile) => {
+    let tileIndex = tile.getAttribute("value");
+    let tileRow = DOMcontroller.indexToBoardPosition(tileIndex).row;
+    let tileColumn = DOMcontroller.indexToBoardPosition(tileIndex).column;
+
+    tile.addEventListener("click", () => {
+      game.playTurn(tileRow, tileColumn);
+    });
+  });
 })();
