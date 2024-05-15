@@ -3,17 +3,21 @@ const gameboard = (function () {
   const rows = 3;
   const columns = rows;
 
-  for (let i = 0; i < rows; i++) {
-    board[i] = [];
+  function emptyBoard() {
+    for (let i = 0; i < rows; i++) {
+      board[i] = [];
 
-    for (let j = 0; j < columns; j++) {
-      board[i][j] = "";
+      for (let j = 0; j < columns; j++) {
+        board[i][j] = "";
+      }
     }
   }
 
+  emptyBoard();
+
   const getBoard = () => board;
 
-  return { getBoard };
+  return { getBoard, emptyBoard };
 })();
 
 const players = (function () {
@@ -90,6 +94,7 @@ const game = (function () {
           } wins`;
           players.addScore();
           DOMcontroller.printScore();
+          eventManager().assignEventReset();
         }
         switchPlayer();
       } else {
@@ -173,7 +178,13 @@ const render = (function () {
     }
   };
 
-  return { printMarker };
+  const printBoard = function () {
+    DOMcontroller.tiles.forEach((tile) => {
+      tile.textContent = "";
+    });
+  };
+
+  return { printMarker, printBoard };
 })();
 
 const DOMcontroller = (function () {
@@ -184,6 +195,8 @@ const DOMcontroller = (function () {
   const leftSide = document.querySelector(".left-side");
   const rightSide = document.querySelector(".right-side");
 
+  const resetButton = document.createElement("button");
+
   const getMessageContainer = () => messageContainer;
 
   const printScore = function () {
@@ -191,11 +204,13 @@ const DOMcontroller = (function () {
     opponentScore.textContent = players.getPlayer(1).score;
   };
 
-  const setPlayersColor = (function () {
+  const setPlayersColor = function () {
     leftSide.setAttribute("style", "color: " + players.getPlayer(0).color);
     rightSide.setAttribute("style", "color: " + players.getPlayer(1).color);
     printScore();
-  })();
+  };
+
+  setPlayersColor();
 
   // converts integer to two numbers between 0 and 2 representing the gameboard coordinates
   const indexToBoardPosition = function (index) {
@@ -211,6 +226,7 @@ const DOMcontroller = (function () {
 
   return {
     tiles,
+    resetButton,
     indexToBoardPosition,
     makeElement,
     getMessageContainer,
@@ -219,16 +235,32 @@ const DOMcontroller = (function () {
   };
 })();
 
-const eventManager = (function () {
-  DOMcontroller.tiles.forEach((tile) => {
-    let tileIndex = tile.getAttribute("value");
-    let tileRow = DOMcontroller.indexToBoardPosition(tileIndex).row;
-    let tileColumn = DOMcontroller.indexToBoardPosition(tileIndex).column;
+const eventManager = function () {
+  const assignEventTiles = function () {
+    DOMcontroller.tiles.forEach((tile) => {
+      let tileIndex = tile.getAttribute("value");
+      let tileRow = DOMcontroller.indexToBoardPosition(tileIndex).row;
+      let tileColumn = DOMcontroller.indexToBoardPosition(tileIndex).column;
 
-    tile.addEventListener("click", () => {
-      game.playTurn(tileRow, tileColumn);
+      tile.addEventListener("click", () => {
+        game.playTurn(tileRow, tileColumn);
+      });
     });
-  });
-})();
+  };
 
-const resetter = function () {};
+  const assignEventReset = function () {
+    DOMcontroller.resetButton.addEventListener("click", resetter);
+    DOMcontroller.resetButton.textContent = "Play again";
+    DOMcontroller.getMessageContainer().appendChild(DOMcontroller.resetButton);
+  };
+
+  return { assignEventTiles, assignEventReset };
+};
+
+eventManager().assignEventTiles();
+
+const resetter = function () {
+  gameboard.emptyBoard();
+  render.printBoard();
+  DOMcontroller.getMessageContainer().textContent = "";
+};
