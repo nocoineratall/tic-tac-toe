@@ -12,9 +12,8 @@ const gameboard = (function () {
   }
 
   const getBoard = () => board;
-  const getRows = () => rows;
 
-  return { getBoard, getRows };
+  return { getBoard };
 })();
 
 const players = (function () {
@@ -25,12 +24,14 @@ const players = (function () {
     name: "Player",
     marker: "X",
     color: playerMarkerColor,
+    score: 0,
   };
 
   const opponent = {
     name: "Opponent",
     marker: "O",
     color: opponentMarkerColor,
+    score: 0,
   };
 
   const playersList = [player, opponent];
@@ -46,7 +47,11 @@ const players = (function () {
     playersList[playerIndex].color = newColor;
   };
 
-  return { setName, getPlayer, setMarkerColor };
+  const addScore = function () {
+    game.getActivePlayer().score++;
+  };
+
+  return { setName, getPlayer, setMarkerColor, addScore };
 })();
 
 const game = (function () {
@@ -64,8 +69,8 @@ const game = (function () {
 
   const checkAvailability = function (row, column) {
     if (
-      row < gameboard.getRows() &&
-      column < gameboard.getRows() &&
+      row < gameboard.getBoard().length &&
+      column < gameboard.getBoard().length &&
       gameboard.getBoard()[row][column] == ""
     ) {
       return true;
@@ -73,23 +78,30 @@ const game = (function () {
   };
 
   const playTurn = function (row, column) {
-    if (checkAvailability(row, column)) {
-      gameboard.getBoard()[row][column] = activePlayer.marker;
-    } else {
-      return console.log("Position not available - select another tile");
+    if (!checkVictory().gameOver) {
+      if (checkAvailability(row, column)) {
+        gameboard.getBoard()[row][column] = activePlayer.marker;
+        render.printMarker(row, column);
+
+        //prints victory message
+        if (checkVictory().gameOver) {
+          DOMcontroller.getMessageContainer().textContent = `${
+            game.getActivePlayer().name
+          } wins`;
+          players.addScore();
+          DOMcontroller.printScore();
+        }
+        switchPlayer();
+      } else {
+        return console.log("Position not available - select another tile");
+      }
     }
-
-    render.printMarker(row, column);
-
-    checkVictory();
-    switchPlayer();
-    return gameboard.getBoard();
   };
 
   const checkVictory = function () {
     let gameOver = false;
     const board = gameboard.getBoard();
-    const rows = gameboard.getRows();
+    const rows = gameboard.getBoard().length;
     const columns = rows;
 
     //Check for Player's victory ("X")
@@ -134,10 +146,7 @@ const game = (function () {
       gameOver = true;
     }
 
-    //Prints winner
-    if (gameOver) {
-      console.log(`${activePlayer.name} Wins`);
-    }
+    return { gameOver };
   };
 
   return { playTurn, getActivePlayer };
@@ -163,22 +172,54 @@ const render = (function () {
       );
     }
   };
+
   return { printMarker };
 })();
 
 const DOMcontroller = (function () {
   const tiles = document.querySelectorAll(".tile");
+  const messageContainer = document.querySelector(".message-container");
+  const playerScore = document.querySelector(".player-score");
+  const opponentScore = document.querySelector(".opponent-score");
+  const leftSide = document.querySelector(".left-side");
+  const rightSide = document.querySelector(".right-side");
 
+  const getMessageContainer = () => messageContainer;
+
+  const printScore = function () {
+    playerScore.textContent = players.getPlayer(0).score;
+    opponentScore.textContent = players.getPlayer(1).score;
+  };
+
+  const setPlayersColor = (function () {
+    leftSide.setAttribute("style", "color: " + players.getPlayer(0).color);
+    rightSide.setAttribute("style", "color: " + players.getPlayer(1).color);
+    printScore();
+  })();
+
+  // converts integer to two numbers between 0 and 2 representing the gameboard coordinates
   const indexToBoardPosition = function (index) {
     row = Math.floor(index / gameboard.getBoard().length);
     column = index % gameboard.getBoard().length;
     return { row, column };
   };
 
-  return { tiles, indexToBoardPosition };
+  //is it really needed?
+  const makeElement = function (element) {
+    return document.createElement(element);
+  };
+
+  return {
+    tiles,
+    indexToBoardPosition,
+    makeElement,
+    getMessageContainer,
+    setPlayersColor,
+    printScore,
+  };
 })();
 
-const eventBinder = (function () {
+const eventManager = (function () {
   DOMcontroller.tiles.forEach((tile) => {
     let tileIndex = tile.getAttribute("value");
     let tileRow = DOMcontroller.indexToBoardPosition(tileIndex).row;
@@ -189,3 +230,5 @@ const eventBinder = (function () {
     });
   });
 })();
+
+const resetter = function () {};
