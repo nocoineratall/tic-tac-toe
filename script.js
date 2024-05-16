@@ -21,8 +21,8 @@ const gameboard = (function () {
 })();
 
 const players = (function () {
-  let playerMarkerColor = "red";
-  let opponentMarkerColor = "blue";
+  let playerMarkerColor = "rgb(211, 76, 76)";
+  let opponentMarkerColor = "rgb(79, 209, 111)";
 
   const player = {
     name: "Player",
@@ -59,7 +59,9 @@ const players = (function () {
 })();
 
 const game = (function () {
+  let board = gameboard.getBoard();
   let activePlayer = players.getPlayer(0);
+  let counter = 0;
 
   const switchPlayer = function () {
     // is it possible to compare objects instead?
@@ -86,6 +88,7 @@ const game = (function () {
       if (checkAvailability(row, column)) {
         gameboard.getBoard()[row][column] = activePlayer.marker;
         render.printMarker(row, column);
+        checkTie();
 
         //prints victory message
         if (checkVictory().gameOver) {
@@ -94,6 +97,10 @@ const game = (function () {
           } wins`;
           players.addScore();
           DOMcontroller.printScore();
+          eventManager().assignEventReset();
+        }
+        if (checkTie()) {
+          DOMcontroller.getMessageContainer().textContent = "It's a tie";
           eventManager().assignEventReset();
         }
         switchPlayer();
@@ -106,8 +113,9 @@ const game = (function () {
   const checkVictory = function () {
     let gameOver = false;
     const board = gameboard.getBoard();
-    const rows = gameboard.getBoard().length;
+    const rows = board.length;
     const columns = rows;
+    counter++;
 
     //Check for Player's victory ("X")
     for (let i = 0; i < rows; i++) {
@@ -154,6 +162,22 @@ const game = (function () {
     return { gameOver };
   };
 
+  function checkTie() {
+    if (
+      board[0][0] != "" &&
+      board[0][1] != "" &&
+      board[0][2] != "" &&
+      board[1][0] != "" &&
+      board[1][1] != "" &&
+      board[1][2] != "" &&
+      board[2][0] != "" &&
+      board[2][1] != "" &&
+      board[2][2] != ""
+    ) {
+      return true;
+    }
+  }
+
   return { playTurn, getActivePlayer };
 })();
 
@@ -192,8 +216,10 @@ const DOMcontroller = (function () {
   const messageContainer = document.querySelector(".message-container");
   const playerScore = document.querySelector(".player-score");
   const opponentScore = document.querySelector(".opponent-score");
-  const leftSide = document.querySelector(".left-side");
-  const rightSide = document.querySelector(".right-side");
+  // const leftSide = document.querySelector(".left-side");
+  // const rightSide = document.querySelector(".right-side");
+  const playerNameBtn = document.querySelector(".set-player-name-btn");
+  const opponentNameBtn = document.querySelector(".set-opponent-name-btn");
 
   const resetButton = document.createElement("button");
 
@@ -205,9 +231,27 @@ const DOMcontroller = (function () {
   };
 
   const setPlayersColor = function () {
-    leftSide.setAttribute("style", "color: " + players.getPlayer(0).color);
-    rightSide.setAttribute("style", "color: " + players.getPlayer(1).color);
+    playerNameBtn.setAttribute(
+      "style",
+      "background-color: " + players.getPlayer(0).color
+    );
+    opponentNameBtn.setAttribute(
+      "style",
+      "background-color: " + players.getPlayer(1).color
+    );
     printScore();
+  };
+
+  const setPlayerName = function () {
+    let newName = prompt("Insert new name");
+    players.getPlayer(0).name = newName;
+    playerNameBtn.textContent = players.getPlayer(0).name;
+  };
+
+  const setOpponentName = function () {
+    let newName = prompt("Insert new name");
+    players.getPlayer(1).name = newName;
+    opponentNameBtn.textContent = players.getPlayer(1).name;
   };
 
   setPlayersColor();
@@ -219,18 +263,16 @@ const DOMcontroller = (function () {
     return { row, column };
   };
 
-  //is it really needed?
-  const makeElement = function (element) {
-    return document.createElement(element);
-  };
-
   return {
     tiles,
     resetButton,
+    playerNameBtn,
+    opponentNameBtn,
     indexToBoardPosition,
-    makeElement,
     getMessageContainer,
     setPlayersColor,
+    setPlayerName,
+    setOpponentName,
     printScore,
   };
 })();
@@ -254,13 +296,25 @@ const eventManager = function () {
     DOMcontroller.getMessageContainer().appendChild(DOMcontroller.resetButton);
   };
 
-  return { assignEventTiles, assignEventReset };
-};
+  const assignEventsChangeName = function () {
+    DOMcontroller.playerNameBtn.addEventListener(
+      "click",
+      DOMcontroller.setPlayerName
+    );
+    DOMcontroller.opponentNameBtn.addEventListener(
+      "click",
+      DOMcontroller.setOpponentName
+    );
+  };
 
-eventManager().assignEventTiles();
+  return { assignEventTiles, assignEventReset, assignEventsChangeName };
+};
 
 const resetter = function () {
   gameboard.emptyBoard();
   render.printBoard();
   DOMcontroller.getMessageContainer().textContent = "";
 };
+
+eventManager().assignEventTiles();
+eventManager().assignEventsChangeName();
