@@ -5,10 +5,10 @@
 }
 
 :root {
-  --gameboard-size: 400px;
-  --gameboard-border: 3px solid whitesmoke;
-  --marker-font-size: 60px;
-  --body-background-color: rgb(87, 87, 87);
+  --gameboard-size: 10rem;
+  --gameboard-border: 10px solid whitesmoke;
+  --marker-font-size: 2rem;
+  --body-background-color: rgb(14, 19, 37);
 }
 
 html {
@@ -30,7 +30,7 @@ body {
   width: 100%;
   display: flex;
   justify-content: flex-end;
-  background-color: rgb(9, 26, 177);
+  background-color: rgb(24, 42, 146);
   font-size: 0.3rem;
 
   /* box-shadow: 0px 1px 10px 1px rgba(165, 165, 165, 0.3); */
@@ -47,7 +47,7 @@ body {
 }
 
 .main-wrapper {
-  height: 40vh;
+  padding-inline: 80px;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
 }
@@ -56,10 +56,10 @@ body {
 .right-side {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* justify-content: center; */
   align-items: center;
   gap: 30px;
-  padding-inline: 30px;
+  padding-inline: 60px;
 
   font-size: 1.5rem;
   color: bisque;
@@ -68,6 +68,17 @@ body {
 .left-side p,
 .right-side p {
   color: whitesmoke;
+}
+
+.left-side button,
+.right-side button {
+  font-family: inherit;
+  font-size: 1rem;
+  color: whitesmoke;
+  border: none;
+  border-radius: 10px;
+  padding: 5px 20px;
+  cursor: pointer;
 }
 
 .gameboard {
@@ -105,7 +116,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 30px;
-  padding-top: 60px;
 }
 
 .message-container > button {
